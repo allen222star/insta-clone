@@ -1,7 +1,7 @@
-# Instagram 클론 — 전체 프로젝트 가이드
+# Andygram 클론 — 전체 프로젝트 가이드
 
-React(Vite) + FastAPI + SQLite로 Instagram 웹을 재현한 풀스택 클론입니다.  
-학습·포트폴리오용이며 Meta/Instagram과 무관합니다.
+React(Vite) + FastAPI + SQLite로 Andygram 웹을 재현한 풀스택 클론입니다.  
+학습·포트폴리오용이며 Meta/Andygram과 무관합니다.
 
 관련 문서:
 
@@ -173,23 +173,12 @@ VITE_USE_MOCK=true
 
 ## 11. 자동 배포
 
-`main` 푸시 시 GitHub Actions가 CI(마이그레이션 + 프론트 빌드)를 돌립니다.  
-아래 Secrets가 있으면 이어서 서버에 SSH 배포합니다.
+`main` 푸시 시 GitHub Actions가 CI를 돌린 뒤, SSH로 `/var/www/insta-clone`에 배포합니다 (`deploy.sh` → `git pull`, `pip install`, `alembic upgrade`, `pm2 restart all`).
 
 | Secret | 설명 |
 |---|---|
-| `DEPLOY_HOST` | 서버 호스트 |
-| `DEPLOY_USER` | SSH 사용자 (`ec2-user` 등) |
-| `DEPLOY_KEY` | 배포용 SSH private key |
-| `DEPLOY_PORT` | 선택. 기본 22 |
-| `DEPLOY_PATH` | 선택. 기본 `$HOME/insta-clone` |
+| `SERVER_HOST` | EC2 호스트 |
+| `SERVER_USER` | SSH 사용자 |
+| `SERVER_SSH_KEY` | 배포용 SSH private key |
 
-서버 최초 1회:
-
-```bash
-sudo cp deploy/insta.service /etc/systemd/system/insta.service
-sudo systemctl daemon-reload
-sudo systemctl enable --now insta
-```
-
-서버 앱 환경은 `backend/.env.server`에 `APP_ENV=server`와 `SECRET_KEY`를 둡니다. DB는 `instagram.server.db`입니다.
+서버 앱 환경은 `backend/.env.server`에 `APP_ENV=server`와 `SECRET_KEY`를 둡니다. DB는 `instagram.server.db`입니다. PM2로 API를 띄워 두면 이후 푸시마다 재시작됩니다.

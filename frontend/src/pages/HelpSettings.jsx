@@ -43,7 +43,7 @@ export default function HelpSettings() {
       </div>
       <div className="help-about">
         <h3>이 앱 정보</h3>
-        <p>학습용 Instagram 클론입니다. 실제 Instagram 계정, 광고, 쇼핑, 라이브, 동영상 릴스는 포함하지 않습니다.</p>
+        <p>학습용 Andygram 클론입니다. 실제 Andygram 계정, 광고, 쇼핑, 라이브, 동영상 릴스는 포함하지 않습니다.</p>
         <ul>
           <li>버전 1.0.0</li>
           <li>React · FastAPI · SQLite</li>

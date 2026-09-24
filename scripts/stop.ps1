@@ -27,7 +27,7 @@ function Stop-ListenPort([int]$Port) {
   }
 }
 
-Write-Host "==> Stopping Instagram clone"
+Write-Host "==> Stopping Andygram clone"
 
 Get-CimInstance Win32_Process | Where-Object {
   $_.CommandLine -and $_.CommandLine -match "scripts[\\/]dev\.mjs"

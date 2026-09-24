@@ -1,5 +1,5 @@
 export function LogoMark({ className = "logo-word" }) {
-  return <span className={className}>Instagram</span>;
+  return <span className={className}>Andygram</span>;
 }
 
 export function HomeIcon({ filled }) {

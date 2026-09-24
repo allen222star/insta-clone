@@ -1,12 +1,12 @@
 # 프론트엔드 명세서
 
-**프로젝트:** Instagram 클론  
+**프로젝트:** Andygram 클론  
 **스택:** React 18 · Vite · React Router 6 · Axios  
 **루트:** `frontend/`  
 **개발 서버:** `http://localhost:5173`  
 **API:** `import.meta.env.VITE_API_URL` 기본 `http://localhost:8000`
 
-백엔드 JSON 계약은 `backend.md`를 따른다. UI는 2022년 이후 Instagram 웹(왼쪽 사이드바 + 중앙 피드 + 오른쪽 추천)을 기준으로 한다.
+백엔드 JSON 계약은 `backend.md`를 따른다. UI는 2022년 이후 Andygram 웹(왼쪽 사이드바 + 중앙 피드 + 오른쪽 추천)을 기준으로 한다.
 
 ---
 
@@ -36,7 +36,7 @@
 - 로고 서체: `Grand Hotel`
 - 본문: `-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial`
 
-Instagram 공식 로고 에셋은 사용하지 않는다. 카메라 마크 + "Instagram" 워드마크 SVG/폰트로 클론 UI를 구성한다.
+Andygram 공식 로고 에셋은 사용하지 않는다. 카메라 마크 + "Andygram" 워드마크 SVG/폰트로 클론 UI를 구성한다.
 
 ---
 
@@ -129,7 +129,7 @@ Instagram 공식 로고 에셋은 사용하지 않는다. 카메라 마크 + "In
 
 ### 4.8 게시물 상세 / 모달
 
-Instagram 웹처럼 왼쪽 이미지, 오른쪽 댓글.  
+Andygram 웹처럼 왼쪽 이미지, 오른쪽 댓글.  
 댓글 작성/삭제, 좋아요, 저장, 작성자면 삭제.
 
 ### 4.9 스토리 뷰어

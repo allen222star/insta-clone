@@ -7,32 +7,42 @@ on:
 
 jobs:
   deploy:
+    name: SSH deploy to EC2
     runs-on: ubuntu-latest
-    if: ${{ secrets.DEPLOY_HOST != '' }}
     steps:
-      - uses: actions/checkout@v4
-
       - name: Deploy over SSH
         uses: appleboy/ssh-action@v1.2.0
-        env:
-          DEPLOY_PATH: ${{ secrets.DEPLOY_PATH }}
         with:
-          host: ${{ secrets.DEPLOY_HOST }}
-          username: ${{ secrets.DEPLOY_USER }}
-          key: ${{ secrets.DEPLOY_KEY }}
-          port: ${{ secrets.DEPLOY_PORT || '22' }}
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
           script_stop: true
-          envs: DEPLOY_PATH
+          command_timeout: 20m
           script: |
             set -euo pipefail
-            APP_DIR="${DEPLOY_PATH:-$HOME/insta-clone}"
-            if [ ! -d "$APP_DIR/.git" ]; then
-              mkdir -p "$(dirname "$APP_DIR")"
+            APP_DIR=/var/www/insta-clone
+            mkdir -p "$APP_DIR"
+            cd "$APP_DIR"
+            if [ ! -d .git ]; then
               git clone https://github.com/allen222star/insta-clone.git "$APP_DIR"
             fi
-            cd "$APP_DIR"
             git fetch origin
             git checkout main
-            git reset --hard origin/main
-            chmod +x scripts/deploy.sh
-            APP_ENV=server bash scripts/deploy.sh
+            git pull origin main
+            if [ ! -f deploy.sh ]; then
+            cat > deploy.sh << 'EOF'
+            #!/usr/bin/env bash
+            set -euo pipefail
+            cd /var/www/insta-clone
+            git pull origin main
+            export APP_ENV=server
+            if [ ! -d backend/.venv ]; then python3 -m venv backend/.venv; fi
+            source backend/.venv/bin/activate
+            pip install -r backend/requirements.txt
+            (cd backend && alembic upgrade head)
+            pm2 restart all
+            echo "deploy ok"
+            EOF
+            fi
+            chmod +x deploy.sh
+            ./deploy.sh

@@ -9,7 +9,7 @@ export const users = [
     email: "demo@insta.local",
     password: "demo1234",
     full_name: "데모 사용자",
-    bio: "인스타그램 클론 데모 계정입니다.",
+    bio: "Andygram 클론 데모 계정입니다.",
     website: "https://example.com",
     avatar_url: pic(64, 400, 400),
   },
