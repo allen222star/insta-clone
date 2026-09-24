@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 
 from app.auth import hash_password  # noqa: E402
-from app.config import UPLOAD_DIR  # noqa: E402
+from app.config import DB_PATH, UPLOAD_DIR  # noqa: E402
 from app.database import SessionLocal, engine, init_db  # noqa: E402
 from app.helpers import attach_hashtags  # noqa: E402
 from app.models import (  # noqa: E402
@@ -111,8 +111,7 @@ def seed_image(stem: str, w: int, h: int, palette_i: int) -> str:
 
 def reset_db():
     engine.dispose()
-    db_path = ROOT / "instagram.db"
-    for extra in (db_path, ROOT / "instagram.db-wal", ROOT / "instagram.db-shm"):
+    for extra in (DB_PATH, Path(str(DB_PATH) + "-wal"), Path(str(DB_PATH) + "-shm")):
         if extra.exists():
             extra.unlink()
     if SEED_DIR.exists():
@@ -461,7 +460,7 @@ def seed():
     db.commit()
     db.close()
 
-    con = sqlite3.connect(ROOT / "instagram.db")
+    con = sqlite3.connect(DB_PATH)
     tables = [
         row[0]
         for row in con.execute(

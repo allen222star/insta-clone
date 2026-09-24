@@ -1,11 +1,11 @@
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.exc import IntegrityError
 
-from .config import CORS_ORIGINS, UPLOAD_DIR
+from .config import APP_ENV, BASE_DIR, CORS_ORIGINS, UPLOAD_DIR
 from .database import init_db
 from .bootstrap import ensure_admin
 from .routers import admin, auth, messages, notifications, posts, settings, stories, users
@@ -48,3 +48,20 @@ def integrity_error(_request: Request, _exc: IntegrityError):
 @app.get("/api/health")
 def health():
     return {"ok": True}
+
+
+DIST_DIR = BASE_DIR.parent / "frontend" / "dist"
+if APP_ENV == "server" and DIST_DIR.is_dir():
+    assets = DIST_DIR / "assets"
+    if assets.is_dir():
+        app.mount("/assets", StaticFiles(directory=str(assets)), name="frontend-assets")
+
+    @app.get("/{full_path:path}")
+    def spa(full_path: str):
+        candidate = (DIST_DIR / full_path).resolve()
+        if full_path and candidate.is_file() and DIST_DIR in candidate.parents:
+            return FileResponse(candidate)
+        index = DIST_DIR / "index.html"
+        if index.is_file():
+            return FileResponse(index)
+        return JSONResponse({"detail": "프론트 빌드가 없습니다."}, status_code=404)

@@ -111,7 +111,7 @@ VITE_USE_MOCK=true
 
 1. UI/UX 변경 → `front.md`와 `frontend/src`를 함께 맞춘다
 2. API 필드 변경 → `backend.md`를 먼저 고치고 프론트 `api.js` / 페이지를 맞춘다
-3. 테이블 변경 → `db.md` → `models.py` → DB 삭제 후 `python seed.py`
+3. 테이블 변경 → `db.md` → `models.py` → `alembic revision --autogenerate -m "..."` → `python migrate.py`. 데모를 처음부터 다시 넣으려면 서버를 끄고 `python seed.py`
 
 인증 토큰은 `localStorage.ig_token`에 있습니다. 백엔드를 시드하면 기존 토큰의 user id가 어긋날 수 있으니 로그아웃 후 다시 로그인합니다.
 
@@ -163,7 +163,33 @@ VITE_USE_MOCK=true
 | `npm run dev` | 설치 확인 + API/UI + 브라우저 |
 | `npm run install:all` | Python/Node 패키지 재설치 |
 | `npm run dev:ui` (`frontend`) | Vite만 |
-| `python seed.py` | 데모 유저·게시물 생성 |
+| `python seed.py` | 데모 유저·게시물 생성 (현재 `APP_ENV` DB) |
+| `python migrate.py` | Alembic으로 현재 환경 SQLite 스키마 적용 |
 | `npm run build` (`frontend`) | 프론트 프로덕션 빌드 |
 
-프로덕션에서는 FastAPI가 `frontend/dist`를 서빙하도록 붙이거나, 정적 호스팅 + API 분리로 배포합니다. 개발 기본값은 분리 실행입니다.
+프로덕션(`APP_ENV=server`)에서는 FastAPI가 `frontend/dist`와 `/api`·`/uploads`를 같이 서빙합니다.
+
+---
+
+## 11. 자동 배포
+
+`main` 푸시 시 GitHub Actions가 CI(마이그레이션 + 프론트 빌드)를 돌립니다.  
+아래 Secrets가 있으면 이어서 서버에 SSH 배포합니다.
+
+| Secret | 설명 |
+|---|---|
+| `DEPLOY_HOST` | 서버 호스트 |
+| `DEPLOY_USER` | SSH 사용자 (`ec2-user` 등) |
+| `DEPLOY_KEY` | 배포용 SSH private key |
+| `DEPLOY_PORT` | 선택. 기본 22 |
+| `DEPLOY_PATH` | 선택. 기본 `$HOME/insta-clone` |
+
+서버 최초 1회:
+
+```bash
+sudo cp deploy/insta.service /etc/systemd/system/insta.service
+sudo systemctl daemon-reload
+sudo systemctl enable --now insta
+```
+
+서버 앱 환경은 `backend/.env.server`에 `APP_ENV=server`와 `SECRET_KEY`를 둡니다. DB는 `instagram.server.db`입니다.

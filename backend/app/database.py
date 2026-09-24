@@ -2,7 +2,7 @@ from sqlalchemy import create_engine, event
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.pool import NullPool
 
-from .config import DATABASE_URL
+from .config import DATABASE_URL, DB_PATH
 
 connect_args = {}
 engine_kwargs = {}
@@ -27,8 +27,10 @@ if DATABASE_URL.startswith("sqlite"):
 
 def init_db():
     from . import models  # noqa: F401
+    from .db_migrate import run_migrations
 
-    Base.metadata.create_all(bind=engine)
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
+    run_migrations()
 
 
 def get_db():

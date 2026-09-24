@@ -53,17 +53,18 @@ python migrate.py
 uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-개발만 `--reload`를 붙인다. 운영은 reload 없이 같은 SQLite 파일을 쓴다.
+개발만 `--reload`를 붙인다. 로컬·서버 모두 SQLite다. `APP_ENV`로 파일을 고른다.
 
-`.env`는 `python-dotenv`로 로드한다(`config.py`에서 `load_dotenv()`).
+`.env`는 `python-dotenv`로 로드한다(`config.py`에서 `load_dotenv()`). `.env.{APP_ENV}`가 있으면 덮어쓴다.
 
 환경 변수 (`.env`):
 
-| 키 | 개발 기본값 | 운영 |
+| 키 | 로컬 기본값 | 서버 |
 |---|---|---|
+| APP_ENV | `local` (미설정 시 Windows는 local, EC2는 server) | `server` |
 | SECRET_KEY | 고정 개발 문자열 | **반드시 교체** |
 | ACCESS_TOKEN_EXPIRE_MINUTES | 10080 (7일) | 동일 가능 |
-| DATABASE_URL | `sqlite:///./instagram.db` | `sqlite:////절대경로/instagram.db` |
+| DATABASE_URL | 비우면 `instagram.db` | 비우면 `instagram.server.db`. 지정 시 그 URL |
 | CORS_ORIGINS | `http://localhost:5173,http://127.0.0.1:5173` | 실제 프론트 origin |
 
 SQLite 연결 시:
@@ -74,9 +75,10 @@ PRAGMA journal_mode = WAL;
 ```
 
 - 엔진: `connect_args={"check_same_thread": False}`, SQLite는 `NullPool`.
-- 스키마: `models.py`가 기준. 적용은 `python migrate.py` (데이터 유지). Alembic/Postgres는 쓰지 않는다.
-- 백업: DB 파일 + `uploads/` 디렉터리를 같이 복사한다.
-- 빈 DB 첫 실행: `python seed.py`. 이후 스키마 변경은 `python migrate.py`. 시드를 다시 넣으려면 서버를 끄고 `python seed.py`.
+- 스키마: `models.py`가 기준. 적용은 Alembic (`python migrate.py` 또는 서버 기동 시 `upgrade head`). Postgres는 쓰지 않는다.
+- 이미 테이블만 있는 예전 DB는 `alembic_version`이 없으면 head로 stamp한다.
+- 백업: 선택된 DB 파일 + `uploads/` 디렉터리를 같이 복사한다.
+- 빈 DB 첫 실행: `python seed.py`. 이후 스키마 변경은 `alembic revision --autogenerate` 후 `python migrate.py`. 시드를 다시 넣으려면 서버를 끄고 `python seed.py`.
 
 업로드: `backend/uploads/` 를 `/uploads`로 마운트. 최대 10MB. MIME `image/jpeg|png|webp|gif`만. Pillow 변환은 필수가 아니다(원본 저장).
 
@@ -618,8 +620,9 @@ JSON `{ "content", "post_id" }` 또는 `{ "content": "..." }`. CHECK: content �
 backend/
   app/
     main.py              # CORS, create_all, static, 라우터
-    config.py            # SQLite DATABASE_URL, SECRET, CORS, UPLOAD_DIR
+    config.py            # APP_ENV, SQLite URL, SECRET, CORS, UPLOAD_DIR
     database.py          # engine WAL, foreign_keys, Session
+    db_migrate.py        # Alembic upgrade / stamp
     models.py            # db.md 테이블 + UserSettings
     schemas.py           # 입력 모델만
     auth.py              # hash / jwt
@@ -636,9 +639,12 @@ backend/
       notifications.py
       messages.py
   seed.py
-  migrate.py
+  migrate.py             # alembic upgrade head
+  alembic.ini
+  alembic/versions/
   requirements.txt
-  instagram.db           # SQLite 파일 (gitignore)
+  instagram.db           # 로컬 SQLite (gitignore)
+  instagram.server.db    # 서버 SQLite (gitignore)
   uploads/
 ```
 

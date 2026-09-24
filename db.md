@@ -3,7 +3,7 @@
 **프로젝트:** Instagram 클론  
 **DBMS:** SQLite 3 (개발·운영 동일)  
 **ORM:** SQLAlchemy 2.x  
-**파일:** `backend/instagram.db`  
+**파일:** 로컬 `backend/instagram.db` · 서버 `backend/instagram.server.db` (`APP_ENV` / `DATABASE_URL`)  
 **문자셋:** UTF-8  
 **구현:** `backend/app/models.py`  
 **계약:** `backend.md` §2.7 과 동일한 스키마.
@@ -27,7 +27,7 @@ PRAGMA foreign_keys = ON;
 PRAGMA journal_mode = WAL;
 ```
 
-엔진: `check_same_thread=False`, `NullPool`. Alembic/Postgres 없음. 스키마 적용은 `python migrate.py` (기존 행 유지). 데모 데이터를 다시 넣으려면 `python seed.py`.
+엔진: `check_same_thread=False`, `NullPool`. Postgres 없음. 스키마는 Alembic (`python migrate.py`, 서버 기동 시 upgrade). 로컬은 `instagram.db`, 서버는 `instagram.server.db` (`APP_ENV` 또는 `DATABASE_URL`). 데모 데이터를 다시 넣으려면 `python seed.py`.
 
 ---
 
