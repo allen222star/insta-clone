@@ -55,6 +55,8 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000
 
 개발만 `--reload`를 붙인다. 운영은 reload 없이 같은 SQLite 파일을 쓴다.
 
+`.env`는 `python-dotenv`로 로드한다(`config.py`에서 `load_dotenv()`).
+
 환경 변수 (`.env`):
 
 | 키 | 개발 기본값 | 운영 |

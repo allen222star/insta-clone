@@ -15,10 +15,22 @@ export default function Signup() {
     setForm((f) => ({ ...f, [k]: v }));
   }
 
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email);
+  const usernameValid = /^[a-zA-Z0-9._]{3,30}$/.test(form.username);
+  const ready = form.email && form.username && form.password.length >= 6;
+
   async function onSubmit(e) {
     e.preventDefault();
-    setBusy(true);
     setErr("");
+    if (!emailValid) {
+      setErr("올바른 이메일 형식을 입력해주세요.");
+      return;
+    }
+    if (!usernameValid) {
+      setErr("사용자 이름은 3~30자의 영문, 숫자, 마침표, 밑줄만 사용할 수 있습니다.");
+      return;
+    }
+    setBusy(true);
     try {
       await signup(form);
       nav("/");
@@ -28,8 +40,6 @@ export default function Signup() {
       setBusy(false);
     }
   }
-
-  const ready = form.email && form.username && form.password.length >= 6;
 
   return (
     <div className="auth-page">
