@@ -1,0 +1,10 @@
+{
+  "name": "insta",
+  "private": true,
+  "description": "Instagram clone — npm run dev starts API, UI, and the browser",
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "start": "node scripts/dev.mjs",
+    "install:all": "node scripts/dev.mjs --install-only --force"
+  }
+}

@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+instagram.db
+instagram.db-wal
+instagram.db-shm
+uploads/
+.env
+token_insta.txt
+node_modules/
+dist/
+.DS_Store

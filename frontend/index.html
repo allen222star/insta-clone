@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Instagram</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Grand+Hotel&display=swap"
+      rel="stylesheet"
+    />
+    <script>
+      (function () {
+        if (!window.__REACT_DEVTOOLS_GLOBAL_HOOK__) {
+          window.__REACT_DEVTOOLS_GLOBAL_HOOK__ = { isDisabled: true };
+        }
+        function ignore(reason) {
+          var msg = String((reason && reason.message) || reason || "");
+          return msg.indexOf("message channel closed before a response was received") !== -1;
+        }
+        window.addEventListener(
+          "unhandledrejection",
+          function (event) {
+            if (ignore(event.reason)) {
+              event.preventDefault();
+              event.stopImmediatePropagation();
+            }
+          },
+          true
+        );
+        window.addEventListener(
+          "error",
+          function (event) {
+            if (ignore(event.error) || ignore(event.message)) {
+              event.preventDefault();
+              event.stopImmediatePropagation();
+            }
+          },
+          true
+        );
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
