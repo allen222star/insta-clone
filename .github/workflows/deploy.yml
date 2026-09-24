@@ -10,6 +10,24 @@ jobs:
     name: SSH deploy to EC2
     runs-on: ubuntu-latest
     steps:
+      - name: Check deploy secrets
+        env:
+          HOST: ${{ secrets.SERVER_HOST }}
+          USER: ${{ secrets.SERVER_USER }}
+          KEY: ${{ secrets.SERVER_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          fail=0
+          if [ -z "${HOST// }" ]; then echo "::error::SERVER_HOST is empty"; fail=1; fi
+          if [ -z "${USER// }" ]; then echo "::error::SERVER_USER is empty"; fail=1; fi
+          if [ -z "${KEY// }" ]; then echo "::error::SERVER_SSH_KEY is empty"; fail=1; fi
+          if [ -n "$KEY" ] && ! printf '%s\n' "$KEY" | grep -q "BEGIN .*PRIVATE KEY"; then
+            echo "::error::SERVER_SSH_KEY must be an OpenSSH private key (-----BEGIN ... PRIVATE KEY-----)"
+            fail=1
+          fi
+          echo "host_len=${#HOST} user_len=${#USER} key_len=${#KEY}"
+          exit "$fail"
+
       - name: Deploy over SSH
         uses: appleboy/ssh-action@v1.2.0
         with:

@@ -182,3 +182,14 @@ VITE_USE_MOCK=true
 | `SERVER_SSH_KEY` | 배포용 SSH private key |
 
 서버 앱 환경은 `backend/.env.server`에 `APP_ENV=server`와 `SECRET_KEY`를 둡니다. DB는 `instagram.server.db`입니다. PM2로 API를 띄워 두면 이후 푸시마다 재시작됩니다.
+
+### Actions SSH 오류
+
+로그에 `***`는 시크릿 값이 가려진 것입니다. 실제 호스트가 `***`인 게 아닙니다.
+
+| 로그 | 원인 | 조치 |
+|---|---|---|
+| `ssh: no key found` | `SERVER_SSH_KEY`가 개인키가 아님 | **공개키(`.pub`)가 아니라** `-----BEGIN ... PRIVATE KEY-----` 전체. 따옴표·한 줄 압축 없이 줄바꿈 유지 |
+| `lookup ... no such host` | `SERVER_HOST`를 DNS가 못 찾음 | EC2 **Public IPv4** 또는 `ec2-....compute.amazonaws.com`. `http://`, 포트, 슬래시 없이 |
+
+시크릿은 **Settings → Secrets and variables → Actions**에서 다시 저장한 뒤 워크플로를 재실행합니다. 키를 채팅에 붙여 넣지 마세요.
