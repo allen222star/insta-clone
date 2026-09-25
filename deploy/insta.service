@@ -1,5 +1,5 @@
 [Unit]
-Description=Andygram clone API
+Description=ANNAgram clone API
 After=network.target
 
 [Service]

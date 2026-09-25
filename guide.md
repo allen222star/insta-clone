@@ -1,7 +1,7 @@
-# Andygram 클론 — 전체 프로젝트 가이드
+# ANNAgram 클론 — 전체 프로젝트 가이드
 
-React(Vite) + FastAPI + SQLite로 Andygram 웹을 재현한 풀스택 클론입니다.  
-학습·포트폴리오용이며 Meta/Andygram과 무관합니다.
+React(Vite) + FastAPI + SQLite로 ANNAgram 웹을 재현한 풀스택 클론입니다.  
+학습·포트폴리오용이며 Meta/ANNAgram과 무관합니다.
 
 관련 문서:
 

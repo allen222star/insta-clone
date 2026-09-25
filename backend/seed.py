@@ -130,7 +130,7 @@ def seed():
             "username": "demo",
             "email": "demo@insta.local",
             "full_name": "데모 사용자",
-            "bio": "Andygram 클론 데모 계정입니다.",
+            "bio": "ANNAgram 클론 데모 계정입니다.",
             "website": "https://example.com",
             "avatar_title": "D",
         },

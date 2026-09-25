@@ -1,6 +1,6 @@
 # insta-clone
 
-Andygram 클론 — FastAPI 백엔드와 React(Vite) 프론트엔드.
+ANNAgram 클론 — FastAPI 백엔드와 React(Vite) 프론트엔드.
 
 ```bash
 npm run install:all

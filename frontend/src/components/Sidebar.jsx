@@ -45,7 +45,7 @@ export default function Sidebar({
 
   return (
     <aside className={`sidebar ${compact ? "compact" : ""}`}>
-      <NavLink to="/" className="side-logo" aria-label="Andygram">
+      <NavLink to="/" className="side-logo" aria-label="ANNAgram">
         {compact ? (
           <svg viewBox="0 0 24 24" width="24" height="24">
             <rect x="2" y="2" width="20" height="20" rx="6" fill="none" stroke="currentColor" strokeWidth="2" />

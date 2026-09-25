@@ -38,7 +38,7 @@ DATABASE_URL = os.getenv("DATABASE_URL") or f"sqlite:///{DB_PATH.as_posix()}"
 if DATABASE_URL.startswith("sqlite:///"):
     DB_PATH = Path(DATABASE_URL.split("sqlite:///", 1)[1])
 
-SECRET_KEY = os.getenv("SECRET_KEY", "dev-andygram-clone-secret-change-me")
+SECRET_KEY = os.getenv("SECRET_KEY", "dev-annagram-clone-secret-change-me")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "10080"))
 CORS_ORIGINS = [

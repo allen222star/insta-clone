@@ -27,7 +27,7 @@ function Stop-ListenPort([int]$Port) {
   }
 }
 
-Write-Host "==> Stopping Andygram clone"
+Write-Host "==> Stopping ANNAgram clone"
 
 Get-CimInstance Win32_Process | Where-Object {
   $_.CommandLine -and $_.CommandLine -match "scripts[\\/]dev\.mjs"

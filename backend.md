@@ -1,6 +1,6 @@
 # 백엔드 개발 요청 명세서
 
-**프로젝트:** Andygram 클론  
+**프로젝트:** ANNAgram 클론  
 **스택:** FastAPI · SQLAlchemy 2 · **SQLite 3 (개발·운영 동일)** · JWT · 로컬 파일 업로드  
 **루트:** `backend/`  
 **Base URL:** `http://localhost:8000`  

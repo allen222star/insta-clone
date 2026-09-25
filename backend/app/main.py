@@ -13,7 +13,7 @@ from .routers import admin, auth, messages, notifications, posts, settings, stor
 init_db()
 ensure_admin()
 
-app = FastAPI(title="Andygram", version="1.0.0")
+app = FastAPI(title="ANNAgram", version="1.0.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ORIGINS,

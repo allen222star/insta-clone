@@ -1,6 +1,6 @@
 # 데이터베이스 설계 명세서
 
-**프로젝트:** Andygram 클론  
+**프로젝트:** ANNAgram 클론  
 **DBMS:** SQLite 3 (개발·운영 동일)  
 **ORM:** SQLAlchemy 2.x  
 **파일:** 로컬 `backend/instagram.db` · 서버 `backend/instagram.server.db` (`APP_ENV` / `DATABASE_URL`)  
