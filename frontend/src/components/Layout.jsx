@@ -8,6 +8,7 @@ import CreateModal from "./CreateModal";
 import { HeartIcon, LogoMark, PlusSquareIcon } from "./Icons";
 import NotifPanel from "./NotifPanel";
 import PostModal from "./PostModal";
+import PwaInstall from "./PwaInstall";
 import SearchPanel from "./SearchPanel";
 import Sidebar from "./Sidebar";
 
@@ -125,6 +126,7 @@ export default function Layout() {
         <Outlet context={{ openPost: setPostId, refresh: () => setTick((t) => t + 1), tick }} />
       </main>
       <BottomNav onCreate={openCreate} />
+      <PwaInstall />
       {create && (
         <CreateModal
           onClose={() => setCreate(false)}

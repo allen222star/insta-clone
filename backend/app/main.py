@@ -60,7 +60,11 @@ if APP_ENV == "server" and DIST_DIR.is_dir():
     def spa(full_path: str):
         candidate = (DIST_DIR / full_path).resolve()
         if full_path and candidate.is_file() and DIST_DIR in candidate.parents:
-            return FileResponse(candidate)
+            headers = {}
+            name = candidate.name
+            if name in {"sw.js", "registerSW.js", "manifest.webmanifest"} or name.startswith("workbox-"):
+                headers["Cache-Control"] = "no-cache"
+            return FileResponse(candidate, headers=headers)
         index = DIST_DIR / "index.html"
         if index.is_file():
             return FileResponse(index)

@@ -15,5 +15,9 @@ source backend/.venv/bin/activate
 pip install -r backend/requirements.txt
 (cd backend && alembic upgrade head)
 
+if command -v npm >/dev/null 2>&1; then
+  (cd frontend && npm install && npm run build)
+fi
+
 pm2 restart all
 echo "deploy ok"
