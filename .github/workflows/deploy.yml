@@ -13,25 +13,25 @@ jobs:
       - name: Check deploy secrets
         env:
           HOST: ${{ secrets.SERVER_HOST }}
-          USER: ${{ secrets.SERVER_USER }}
+          SSH_USER: ${{ secrets.SERVER_USER }}
           KEY: ${{ secrets.SERVER_SSH_KEY }}
         run: |
           set -euo pipefail
           fail=0
           if [ -z "${HOST// }" ]; then echo "::error::SERVER_HOST is empty"; fail=1; fi
-          if [ -z "${USER// }" ]; then echo "::error::SERVER_USER is empty"; fail=1; fi
+          if [ -z "${SSH_USER// }" ]; then echo "::error::SERVER_USER is empty"; fail=1; fi
           if [ -z "${KEY// }" ]; then echo "::error::SERVER_SSH_KEY is empty"; fail=1; fi
           if [ -n "$KEY" ] && ! printf '%s\n' "$KEY" | grep -q "BEGIN .*PRIVATE KEY"; then
             echo "::error::SERVER_SSH_KEY must be an OpenSSH private key (-----BEGIN ... PRIVATE KEY-----)"
             fail=1
           fi
-          echo "host_len=${#HOST} user_len=${#USER} key_len=${#KEY}"
+          echo "host_len=${#HOST} user_len=${#SSH_USER} key_len=${#KEY}"
           exit "$fail"
 
-      - name: Normalize SSH target and key
+      - name: Restore SSH key and target
         env:
           HOST: ${{ secrets.SERVER_HOST }}
-          USER: ${{ secrets.SERVER_USER }}
+          SSH_USER: ${{ secrets.SERVER_USER }}
           KEY: ${{ secrets.SERVER_SSH_KEY }}
           PORT: ${{ secrets.SERVER_PORT }}
         run: |
@@ -41,29 +41,39 @@ jobs:
           import re
 
           def clean(value: str) -> str:
-              value = value.strip()
+              value = (value or "").strip()
               if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
                   value = value[1:-1].strip()
               return value
 
+          def restore_key(raw: str) -> str:
+              text = raw.strip()
+              if len(text) >= 2 and text[0] == text[-1] and text[0] in {"'", '"'}:
+                  text = text[1:-1]
+              text = text.replace("\\r\\n", "\n").replace("\\n", "\n").replace("\r", "")
+              if text.count("\n") >= 3:
+                  return text if text.endswith("\n") else text + "\n"
+              match = re.search(r"-----BEGIN ([A-Z0-9 ]+PRIVATE KEY)-----", text)
+              if not match:
+                  return text if text.endswith("\n") else text + "\n"
+              kind = match.group(1)
+              start = f"-----BEGIN {kind}-----"
+              end = f"-----END {kind}-----"
+              begin_at = text.find(start)
+              end_at = text.find(end)
+              if begin_at < 0 or end_at < 0:
+                  return text if text.endswith("\n") else text + "\n"
+              body = re.sub(r"\s+", "", text[begin_at + len(start) : end_at])
+              width = 70 if "OPENSSH" in kind else 64
+              wrapped = "\n".join(body[i : i + width] for i in range(0, len(body), width))
+              return f"{start}\n{wrapped}\n{end}\n"
+
           host = clean(os.environ.get("HOST", ""))
           host = re.sub(r"^https?://", "", host, flags=re.I)
           host = host.split("/")[0]
-          user = clean(os.environ.get("USER", ""))
+          user = clean(os.environ.get("SSH_USER", ""))
           port = clean(os.environ.get("PORT", "") or "22") or "22"
-
-          key = os.environ.get("KEY", "").strip()
-          if len(key) >= 2 and key[0] == key[-1] and key[0] in {"'", '"'}:
-              key = key[1:-1]
-          key = key.replace("\r\n", "\n").replace("\r", "\n")
-          if "BEGIN " in key and "\n" not in key[10:]:
-              key = key.replace("\\n", "\n")
-          if "BEGIN " in key and " " in key and "\n" not in key:
-              key = re.sub(r" (-----)", r"\n\1", key)
-              key = re.sub(r"(-----BEGIN [A-Z ]+PRIVATE KEY-----) ", r"\1\n", key)
-              key = re.sub(r" (-----END)", r"\n\1", key)
-          if not key.endswith("\n"):
-              key += "\n"
+          key = restore_key(os.environ.get("KEY", ""))
 
           ssh_dir = pathlib.Path.home() / ".ssh"
           ssh_dir.mkdir(mode=0o700, exist_ok=True)
@@ -73,9 +83,15 @@ jobs:
           pathlib.Path("/tmp/deploy_host").write_text(host)
           pathlib.Path("/tmp/deploy_user").write_text(user)
           pathlib.Path("/tmp/deploy_port").write_text(port)
-          print(f"host_chars={len(host)} user_chars={len(user)} port={port} key_lines={key.count(chr(10))}")
+          header = key.splitlines()[0] if key.splitlines() else ""
+          footer = key.splitlines()[-1] if key.splitlines() else ""
+          print(f"host_chars={len(host)} user_chars={len(user)} port={port}")
+          print(f"key_lines={key.count(chr(10))} header={header} footer={footer}")
           PY
-          ssh-keygen -y -f "$HOME/.ssh/deploy_key" >/dev/null
+          if ! ssh-keygen -y -P "" -f "$HOME/.ssh/deploy_key" >/tmp/deploy_pub; then
+            echo "::error::SERVER_SSH_KEY is not a usable OpenSSH private key. Paste the PEM/OPENSSH private key with real line breaks, not the .pub file."
+            exit 1
+          fi
 
       - name: Deploy over SSH
         run: |
