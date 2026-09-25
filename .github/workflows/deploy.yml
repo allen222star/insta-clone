@@ -28,39 +28,88 @@ jobs:
           echo "host_len=${#HOST} user_len=${#USER} key_len=${#KEY}"
           exit "$fail"
 
+      - name: Normalize SSH target and key
+        env:
+          HOST: ${{ secrets.SERVER_HOST }}
+          USER: ${{ secrets.SERVER_USER }}
+          KEY: ${{ secrets.SERVER_SSH_KEY }}
+          PORT: ${{ secrets.SERVER_PORT }}
+        run: |
+          python3 << 'PY'
+          import os
+          import pathlib
+          import re
+
+          def clean(value: str) -> str:
+              value = value.strip()
+              if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
+                  value = value[1:-1].strip()
+              return value
+
+          host = clean(os.environ.get("HOST", ""))
+          host = re.sub(r"^https?://", "", host, flags=re.I)
+          host = host.split("/")[0]
+          user = clean(os.environ.get("USER", ""))
+          port = clean(os.environ.get("PORT", "") or "22") or "22"
+
+          key = os.environ.get("KEY", "").strip()
+          if len(key) >= 2 and key[0] == key[-1] and key[0] in {"'", '"'}:
+              key = key[1:-1]
+          key = key.replace("\r\n", "\n").replace("\r", "\n")
+          if "BEGIN " in key and "\n" not in key[10:]:
+              key = key.replace("\\n", "\n")
+          if "BEGIN " in key and " " in key and "\n" not in key:
+              key = re.sub(r" (-----)", r"\n\1", key)
+              key = re.sub(r"(-----BEGIN [A-Z ]+PRIVATE KEY-----) ", r"\1\n", key)
+              key = re.sub(r" (-----END)", r"\n\1", key)
+          if not key.endswith("\n"):
+              key += "\n"
+
+          ssh_dir = pathlib.Path.home() / ".ssh"
+          ssh_dir.mkdir(mode=0o700, exist_ok=True)
+          key_path = ssh_dir / "deploy_key"
+          key_path.write_text(key)
+          key_path.chmod(0o600)
+          pathlib.Path("/tmp/deploy_host").write_text(host)
+          pathlib.Path("/tmp/deploy_user").write_text(user)
+          pathlib.Path("/tmp/deploy_port").write_text(port)
+          print(f"host_chars={len(host)} user_chars={len(user)} port={port} key_lines={key.count(chr(10))}")
+          PY
+          ssh-keygen -y -f "$HOME/.ssh/deploy_key" >/dev/null
+
       - name: Deploy over SSH
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          script_stop: true
-          command_timeout: 20m
-          script: |
-            set -euo pipefail
-            APP_DIR=/var/www/insta-clone
-            mkdir -p "$APP_DIR"
-            cd "$APP_DIR"
-            if [ ! -d .git ]; then
-              git clone https://github.com/allen222star/insta-clone.git "$APP_DIR"
-            fi
-            git fetch origin
-            git checkout main
-            git pull origin main
-            if [ ! -f deploy.sh ]; then
-            cat > deploy.sh << 'EOF'
-            #!/usr/bin/env bash
-            set -euo pipefail
-            cd /var/www/insta-clone
-            git pull origin main
-            export APP_ENV=server
-            if [ ! -d backend/.venv ]; then python3 -m venv backend/.venv; fi
-            source backend/.venv/bin/activate
-            pip install -r backend/requirements.txt
-            (cd backend && alembic upgrade head)
-            pm2 restart all
-            echo "deploy ok"
-            EOF
-            fi
-            chmod +x deploy.sh
-            ./deploy.sh
+        run: |
+          set -euo pipefail
+          HOST=$(cat /tmp/deploy_host)
+          USER_NAME=$(cat /tmp/deploy_user)
+          PORT=$(cat /tmp/deploy_port)
+          ssh-keyscan -p "$PORT" -T 15 "$HOST" >> "$HOME/.ssh/known_hosts" 2>/dev/null || true
+          ssh -i "$HOME/.ssh/deploy_key" -p "$PORT" \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=accept-new \
+            -o ConnectTimeout=25 \
+            -o ServerAliveInterval=10 \
+            "${USER_NAME}@${HOST}" bash -s << 'REMOTE'
+          set -euo pipefail
+          export APP_ENV=server
+          export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+          if [ -s "$NVM_DIR/nvm.sh" ]; then
+            # shellcheck disable=SC1090
+            . "$NVM_DIR/nvm.sh"
+            nvm use 20 >/dev/null 2>&1 || true
+          fi
+          export PATH="/usr/local/bin:/usr/bin:$HOME/.local/bin:$PATH"
+
+          APP_DIR=/var/www/insta-clone
+          if [ ! -d "$APP_DIR/.git" ]; then
+            sudo mkdir -p "$APP_DIR"
+            sudo chown "$(id -un):$(id -gn)" "$APP_DIR"
+            git clone https://github.com/allen222star/insta-clone.git "$APP_DIR"
+          fi
+          cd "$APP_DIR"
+          git fetch origin
+          git checkout main
+          git reset --hard origin/main
+          chmod +x deploy.sh
+          ./deploy.sh
+          REMOTE

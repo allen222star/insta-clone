@@ -173,7 +173,7 @@ VITE_USE_MOCK=true
 
 ## 11. 자동 배포
 
-`main` 푸시 시 GitHub Actions가 CI를 돌린 뒤, SSH로 `/var/www/insta-clone`에 배포합니다 (`deploy.sh` → `git pull`, `pip install`, `alembic upgrade`, `pm2 restart all`).
+`main` 푸시 시 GitHub Actions가 OpenSSH로 `/var/www/insta-clone`에 접속한 뒤 `deploy.sh`를 실행합니다 (`git reset --hard origin/main`, `pip install`, `alembic upgrade`, Node 20으로 프론트 빌드, `pm2 restart`).
 
 | Secret | 설명 |
 |---|---|
@@ -191,5 +191,7 @@ VITE_USE_MOCK=true
 |---|---|---|
 | `ssh: no key found` | `SERVER_SSH_KEY`가 개인키가 아님 | **공개키(`.pub`)가 아니라** `-----BEGIN ... PRIVATE KEY-----` 전체. 따옴표·한 줄 압축 없이 줄바꿈 유지 |
 | `lookup ... no such host` | `SERVER_HOST`를 DNS가 못 찾음 | EC2 **Public IPv4** 또는 `ec2-....compute.amazonaws.com`. `http://`, 포트, 슬래시 없이 |
+| `Connection timed out` / `Connection refused` | 보안그룹이 Actions IP를 막음 | EC2 인바운드 22를 GitHub Actions에서 열거나, 테스트로 `0.0.0.0/0` 22 (임시) |
+| `Permission denied (publickey)` | 서버가 그 개인키를 모름 | `ec2-user`의 `~/.ssh/authorized_keys`에 짝 공개키 추가 |
 
 시크릿은 **Settings → Secrets and variables → Actions**에서 다시 저장한 뒤 워크플로를 재실행합니다. 키를 채팅에 붙여 넣지 마세요.
